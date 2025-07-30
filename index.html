@@ -269,7 +269,7 @@
                 dreamResultBox.classList.remove('hidden');
                 dreamResultText.innerHTML = 'Lotto-Tech AI กำลังประมวลผลความฝัน...';
 
-                const apiKey = ""; 
+                const apiKey = "AIzaSyDy8R_EQJRYEmWXbTgmS-IwvN34_vZmsDE"; 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 
                 const prompt = `ในฐานะ "Lotto-Tech AI" ที่เชี่ยวชาญการทำนายฝันโดยอ้างอิงจากตำราโบราณและหลักจิตวิทยา จงวิเคราะห์ความฝันต่อไปนี้:\n\n"${dreamText}"\n\nจงให้คำทำนายที่เชื่อมโยงกับชีวิตจริงของผู้ฝันในด้านต่างๆ เช่น การงาน การเงิน ความรัก สุขภาพ และคำเตือน จากนั้นให้ตีความเป็น "เลขนำโชค" สองตัวและสามตัว พร้อมอธิบายเหตุผลที่มาของตัวเลขอย่างสั้นๆ จัดรูปแบบคำตอบให้สวยงาม อ่านง่าย มีหัวข้อชัดเจน`;
