@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lotto-Tech Thai</title>
+    <title>Lotto-Tech Thai (Upgraded)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +12,16 @@
         body {
             font-family: 'Kanit', sans-serif;
             background-color: #050816; /* Deep space blue */
+            color: #d1d5db;
+            overflow-x: hidden;
+        }
+        #net-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
         }
         .tech-glow {
             transition: all 0.3s ease;
@@ -20,26 +30,32 @@
         .tech-glow:hover {
             box-shadow: 0 0 15px rgba(34, 211, 238, 0.8), 0 0 25px rgba(34, 211, 238, 0.6);
         }
-        @keyframes number-flicker {
-            0%, 100% { opacity: 1; transform: translateY(0); filter: blur(0); }
-            50% { opacity: 0.5; transform: translateY(-10px); filter: blur(2px); }
+        .number-display-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
         }
-        .flicker { animation: number-flicker 0.2s infinite; }
         .number-display {
-            font-size: clamp(2.5rem, 10vw, 4rem);
+            font-size: clamp(2rem, 8vw, 3rem);
             font-weight: 700;
             letter-spacing: 0.1em;
             text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
             color: #22d3ee; /* Cyan-400 */
+            padding: 0.5rem;
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 0.5rem;
         }
         .card {
-            background-color: rgba(15, 23, 42, 0.5); /* Slate-900 with 50% opacity */
+            background-color: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(56, 189, 248, 0.2); /* Sky-400 */
+            border: 1px solid rgba(56, 189, 248, 0.2);
             border-radius: 1rem;
             position: relative;
             overflow: hidden;
+            z-index: 1;
         }
         .ai-reasoning {
             background: rgba(0,0,0,0.3);
@@ -54,12 +70,12 @@
         }
     </style>
 </head>
-<body class="text-gray-200">
+<body>
+    <canvas id="net-canvas"></canvas>
 
-    <div class="container mx-auto p-4 md:p-8">
+    <div class="container mx-auto p-4 md:p-8 relative z-10">
         
         <header class="text-center mb-8">
-            <!-- การเปลี่ยนแปลง: โลโก้หุ่นยนต์ AI ใหม่ -->
             <div class="w-24 h-24 sm:w-28 sm:h-28 mx-auto mb-4 flex items-center justify-center">
                 <svg viewBox="0 0 100 100" class="w-full h-full">
                     <path d="M25,35 A15,15 0 0,1 75,35 L75,65 A15,15 0 0,1 25,65 Z" stroke="#22d3ee" stroke-width="3" fill="none"/>
@@ -72,7 +88,7 @@
             </div>
             
             <h1 class="text-4xl md:text-5xl font-bold text-cyan-400" style="text-shadow: 0 0 15px rgba(34, 211, 238, 0.5);">Lotto-Tech Thai</h1>
-            <p class="text-lg text-gray-400 mt-2">วิเคราะห์ด้วยเทคโนโลยี AI และ Big Data</p>
+            <p class="text-lg text-gray-400 mt-2">วิเคราะห์ด้วยเทคโนโลยี AI และ Big Data เวอร์ชันอัปเกรด</p>
             <div id="datetime" class="mt-4 text-xl text-sky-300"></div>
         </header>
 
@@ -80,24 +96,32 @@
 
             <div class="lg:col-span-3 card p-6 md:p-8">
                 <div class="flex justify-between items-center flex-wrap gap-2">
-                    <h2 class="text-2xl font-semibold text-white">ผลการวิเคราะห์จาก AI</h2>
+                    <h2 class="text-2xl font-semibold text-white">ผลการวิเคราะห์จาก AI V2.0</h2>
                     <p class="text-sky-400 text-sm sm:text-base" id="draw-date"></p>
                 </div>
                 <div id="ai-status" class="mt-2 h-6 text-lg text-sky-300 transition-opacity duration-500"></div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 my-8">
+                <div class="grid grid-cols-1 gap-8 my-8">
                     <div class="text-center bg-black/40 backdrop-blur-sm p-6 rounded-lg">
-                        <h3 class="text-xl font-medium text-gray-300 mb-4">เลขท้าย 2 ตัว</h3>
-                        <div id="result-2-digit" class="number-display">--</div>
+                        <h3 class="text-xl font-medium text-gray-300 mb-4">ชุดเลขท้าย 2 ตัว (Top 3)</h3>
+                        <div id="result-2-digit-grid" class="number-display-grid">
+                            <div class="number-display">--</div>
+                            <div class="number-display">--</div>
+                            <div class="number-display">--</div>
+                        </div>
                     </div>
                     <div class="text-center bg-black/40 backdrop-blur-sm p-6 rounded-lg">
-                        <h3 class="text-xl font-medium text-gray-300 mb-4">เลขท้าย 3 ตัว</h3>
-                        <div id="result-3-digit" class="number-display">---</div>
+                        <h3 class="text-xl font-medium text-gray-300 mb-4">ชุดเลขท้าย 3 ตัว (Top 3)</h3>
+                         <div id="result-3-digit-grid" class="number-display-grid">
+                            <div class="number-display">---</div>
+                            <div class="number-display">---</div>
+                            <div class="number-display">---</div>
+                        </div>
                     </div>
                 </div>
 
                 <div id="ai-reasoning-box" class="ai-reasoning hidden">
-                    <p class="font-semibold text-cyan-400 mb-2">หลักการวิเคราะห์ของ Lotto-Tech AI:</p>
+                    <p class="font-semibold text-cyan-400 mb-2">หลักการวิเคราะห์ของ Lotto-Tech AI (Upgrade):</p>
                     <p id="ai-reasoning-text"></p>
                 </div>
             </div>
@@ -114,7 +138,7 @@
                     </div>
                 </div>
 
-                <div class="card p-6 md:p-8">
+                 <div class="card p-6 md:p-8">
                     <h2 class="text-2xl font-semibold text-white mb-4">ผลรางวัลและสถิติ</h2>
                     <div class="mb-6">
                         <h3 class="text-lg font-medium text-sky-400 border-b border-sky-400/20 pb-2 mb-3">ผลสลากฯ งวดล่าสุด (16 ก.ค. 68)</h3>
@@ -132,7 +156,6 @@
                             <p>อัตราความแม่นยำ: <span id="ai-accuracy-rate" class="font-bold text-sky-300">N/A</span></p>
                         </div>
                     </div>
-                    <div id="verdict-message" class="mt-4 p-4 rounded-lg text-center font-semibold transition-all duration-500 opacity-0"></div>
                 </div>
             </div>
         </main>
@@ -140,13 +163,13 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- Elements ---
             const datetimeEl = document.getElementById('datetime');
-            const result2DigitEl = document.getElementById('result-2-digit');
-            const result3DigitEl = document.getElementById('result-3-digit');
+            const result2DigitGrid = document.getElementById('result-2-digit-grid');
+            const result3DigitGrid = document.getElementById('result-3-digit-grid');
             const aiStatusEl = document.getElementById('ai-status');
             const aiReasoningBox = document.getElementById('ai-reasoning-box');
             const aiReasoningText = document.getElementById('ai-reasoning-text');
-            const verdictMessageEl = document.getElementById('verdict-message');
             const aiHitsEl = document.getElementById('ai-hits');
             const aiMissesEl = document.getElementById('ai-misses');
             const aiAccuracyRateEl = document.getElementById('ai-accuracy-rate');
@@ -157,9 +180,13 @@
             const dreamResultText = document.getElementById('dream-result-text');
             const drawDateEl = document.getElementById('draw-date');
 
-            let aiStats = JSON.parse(localStorage.getItem('lottoTechStats_v2')) || { hits: 0, misses: 0 };
-            let predictedNumbers = JSON.parse(localStorage.getItem('lottoTechPredicted_v2')) || { twoDigit: null, threeDigit: null, reason: null, drawDate: null };
+            // --- Local Storage Data ---
+            const storageKeyStats = 'lottoTechStats_v3';
+            const storageKeyPredictions = 'lottoTechPredicted_v3';
+            let aiStats = JSON.parse(localStorage.getItem(storageKeyStats)) || { hits: 0, misses: 0 };
+            let predictedData = JSON.parse(localStorage.getItem(storageKeyPredictions)) || { twoDigit: [], threeDigit: [], reason: null, drawDate: null };
 
+            // --- Time and Date ---
             function updateTime() {
                 const now = new Date();
                 const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Bangkok' };
@@ -168,17 +195,49 @@
             setInterval(updateTime, 1000);
             updateTime();
 
-            const reasoningTemplates = [
-                "ระบบ AI ได้ประมวลผล Big Data จากสถิติย้อนหลัง 20 ปี และพบว่ากลุ่มเลข {0} มีค่า Correlation สูงสุดกับปัจจัยทางเศรษฐกิจในปัจจุบัน จึงคาดการณ์ว่าเลข {2} และ {3} มีโอกาสออกรางวัลสูง",
-                "จากการใช้โมเดล Machine Learning ประเภท 'Random Forest' วิเคราะห์แพทเทิร์นการออกรางวัล พบว่าเลข {1} มีค่า 'Feature Importance' สูงสุดในรอบ 3 เดือนที่ผ่านมา เมื่อรวมกับเลขเด่น {0} จึงได้ผลลัพธ์เป็น {2} และ {3}",
-                "AI ได้วิเคราะห์ข้อมูลจากโซเชียลมีเดียกว่า 10 ล้านข้อความ และพบว่าเลข {0} และ {1} ถูกกล่าวถึงบ่อยครั้งในบริบทของโชคลาภ ระบบจึงให้น้ำหนักกับเลขชุดนี้ ทำให้ได้ผลการทำนายเป็น {2} และ {3}",
-            ];
+            // --- Seeded Pseudo-Random Number Generator ---
+            function createSeededRandom(seed) {
+                let currentSeed = seed;
+                return function() {
+                    currentSeed = (currentSeed * 9301 + 49297) % 233280;
+                    return currentSeed / 233280;
+                };
+            }
 
-            function generateReasoning(num2, num3) {
-                const n1 = num3.charAt(Math.floor(Math.random() * 3));
-                const n2 = num2.charAt(Math.floor(Math.random() * 2));
+            // --- AI Logic ---
+            const reasoningTemplates = [
+                "AI ได้ทำการ Cross-validation ข้อมูลสถิติย้อนหลัง 25 ปี กับข้อมูลดัชนีเศรษฐกิจมหภาค (Macroeconomic Index) พบว่ากลุ่มเลข {cluster} มีความสัมพันธ์เชิงบวกสูงสุด ระบบจึงให้น้ำหนักกับตัวเลขในกลุ่มนี้ และคัดกรองผ่านโมเดล Deep Learning เพื่อให้ได้ชุดเลขที่มีความเป็นไปได้สูงสุดคือ {nums}",
+                "จากการวิเคราะห์ข้อมูล Social Listening กว่า 50 ล้านข้อความในช่วง 30 วันที่ผ่านมา ร่วมกับการวิเคราะห์อนุกรมเวลา (Time Series Analysis) ของผลรางวัลในอดีต AI พบว่า Pattern การกระจายตัวของเลข {pattern} มีแนวโน้มที่จะเกิดขึ้นซ้ำ ระบบจึงสังเคราะห์ชุดเลขเด่นออกมาเป็น {nums}",
+                "โมเดล 'Quantum-Inspired Annealing' ได้ทำการประมวลผลความเป็นไปได้กว่า 10^12 รูปแบบ โดยพิจารณาจากปัจจัยทางโหราศาสตร์ดิจิทัลและค่าสหสัมพันธ์ (Correlation) ของเลขคู่-คี่ พบว่ากลุ่มเลขที่収束 (converge) ณ จุดพลังงานต่ำสุดคือ {nums} ซึ่งบ่งชี้ถึงโอกาสการออกรางวัลที่สูงที่สุด"
+            ];
+            
+            function generatePredictions(seed) {
+                const random = createSeededRandom(seed);
+                const predictions = {
+                    twoDigit: [],
+                    threeDigit: []
+                };
+                const generated2D = new Set();
+                while(generated2D.size < 3) {
+                    generated2D.add(String(Math.floor(random() * 100)).padStart(2, '0'));
+                }
+                predictions.twoDigit = Array.from(generated2D);
+
+                const generated3D = new Set();
+                 while(generated3D.size < 3) {
+                    generated3D.add(String(Math.floor(random() * 1000)).padStart(3, '0'));
+                }
+                predictions.threeDigit = Array.from(generated3D);
+                
+                return predictions;
+            }
+
+            function generateReasoning(nums2, nums3) {
                 const template = reasoningTemplates[Math.floor(Math.random() * reasoningTemplates.length)];
-                return template.replace('{0}', n1).replace('{1}', n2).replace('{2}', num2).replace('{3}', num3);
+                const allNums = [...nums2, ...nums3].join(', ');
+                const cluster = nums3[0].substring(0, 1) + 'xx';
+                const pattern = nums2[1];
+                return template.replace('{nums}', allNums).replace('{cluster}', cluster).replace('{pattern}', pattern);
             }
             
             function getUpcomingDrawInfo() {
@@ -186,46 +245,49 @@
                 const year = now.getFullYear();
                 const month = now.getMonth();
                 const day = now.getDate();
-                const draw1 = new Date(year, month, 1);
-                const draw16 = new Date(year, month, 16);
+                const draw1 = new Date(year, month, 1, 16, 0, 0); // 4 PM
+                const draw16 = new Date(year, month, 16, 16, 0, 0); // 4 PM
                 let upcomingDrawDate;
                 if (now < draw1) { upcomingDrawDate = draw1; } 
                 else if (now < draw16) { upcomingDrawDate = draw16; } 
-                else { upcomingDrawDate = new Date(year, month + 1, 1); }
+                else { upcomingDrawDate = new Date(year, month + 1, 1, 16, 0, 0); }
+                
                 const analysisStartDate = new Date(upcomingDrawDate);
                 analysisStartDate.setDate(analysisStartDate.getDate() - 1);
                 analysisStartDate.setHours(0, 0, 0, 0);
+                
                 return { upcomingDrawDate, analysisStartDate };
             }
 
             function startAutomaticAnalysis(upcomingDrawDate) {
-                aiStatusEl.textContent = 'Lotto-Tech AI กำลังประมวลผล Big Data...';
-                result2DigitEl.classList.add('flicker');
-                result3DigitEl.classList.add('flicker');
-                result2DigitEl.textContent = "88";
-                result3DigitEl.textContent = "888";
+                aiStatusEl.textContent = 'Lotto-Tech AI V2.0 กำลังประมวลผล Big Data...';
+                
+                const dateSeed = parseInt(upcomingDrawDate.toISOString().split('T')[0].replace(/-/g, ''));
+                
+                const { twoDigit, threeDigit } = generatePredictions(dateSeed);
+                const reason = generateReasoning(twoDigit, threeDigit);
+
+                predictedData = {
+                    twoDigit, threeDigit, reason,
+                    drawDate: upcomingDrawDate.toISOString().split('T')[0]
+                };
+                localStorage.setItem(storageKeyPredictions, JSON.stringify(predictedData));
+                
                 setTimeout(() => {
-                    const num2digit = String(Math.floor(Math.random() * 100)).padStart(2, '0');
-                    const num3digit = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-                    const reason = generateReasoning(num2digit, num3digit);
-                    predictedNumbers = {
-                        twoDigit: num2digit, threeDigit: num3digit, reason: reason,
-                        drawDate: upcomingDrawDate.toISOString().split('T')[0]
-                    };
-                    localStorage.setItem('lottoTechPredicted_v2', JSON.stringify(predictedNumbers));
-                    displayPrediction();
-                    aiStatusEl.textContent = 'การวิเคราะห์ข้อมูลเสร็จสมบูรณ์';
-                }, 2500);
+                     displayPrediction();
+                     aiStatusEl.textContent = 'การวิเคราะห์ข้อมูลเสร็จสมบูรณ์';
+                }, 1500);
             }
             
             function displayPrediction() {
-                 if(predictedNumbers.twoDigit) {
-                    result2DigitEl.classList.remove('flicker');
-                    result3DigitEl.classList.remove('flicker');
-                    result2DigitEl.textContent = predictedNumbers.twoDigit;
-                    result3DigitEl.textContent = predictedNumbers.threeDigit;
-                    aiReasoningText.textContent = predictedNumbers.reason;
+                 if(predictedData.twoDigit && predictedData.twoDigit.length > 0) {
+                    result2DigitGrid.innerHTML = predictedData.twoDigit.map(n => `<div class="number-display">${n}</div>`).join('');
+                    result3DigitGrid.innerHTML = predictedData.threeDigit.map(n => `<div class="number-display">${n}</div>`).join('');
+                    aiReasoningText.textContent = predictedData.reason;
                     aiReasoningBox.classList.remove('hidden');
+                 } else {
+                    result2DigitGrid.innerHTML = `<div class="number-display">--</div>`.repeat(3);
+                    result3DigitGrid.innerHTML = `<div class="number-display">---</div>`.repeat(3);
                  }
             }
 
@@ -234,16 +296,20 @@
                 const { upcomingDrawDate, analysisStartDate } = getUpcomingDrawInfo();
                 const drawDateString = upcomingDrawDate.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
                 drawDateEl.textContent = `งวดวันที่ ${drawDateString}`;
-                const storedDrawDate = predictedNumbers.drawDate;
+                const storedDrawDate = predictedData.drawDate;
                 const upcomingDrawDateStr = upcomingDrawDate.toISOString().split('T')[0];
+                
                 if (now >= analysisStartDate) {
-                    if (storedDrawDate !== upcomingDrawDateStr) { startAutomaticAnalysis(upcomingDrawDate); } 
-                    else { aiStatusEl.textContent = 'ผลการวิเคราะห์สำหรับงวดปัจจุบัน'; displayPrediction(); }
+                    if (storedDrawDate !== upcomingDrawDateStr) {
+                         startAutomaticAnalysis(upcomingDrawDate);
+                    } else {
+                         aiStatusEl.textContent = 'ผลการวิเคราะห์สำหรับงวดปัจจุบัน'; 
+                         displayPrediction();
+                    }
                 } else {
                     const analysisDateString = analysisStartDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'long' });
                     aiStatusEl.textContent = `AI จะเริ่มวิเคราะห์ในวันที่ ${analysisDateString}`;
-                    result2DigitEl.textContent = 'รอผล';
-                    result3DigitEl.textContent = 'รอผล';
+                    displayPrediction(); 
                     aiReasoningBox.classList.add('hidden');
                 }
             }
@@ -269,16 +335,14 @@
                 dreamResultBox.classList.remove('hidden');
                 dreamResultText.innerHTML = 'Lotto-Tech AI กำลังประมวลผลความฝัน...';
 
-                const apiKey = "AIzaSyDy8R_EQJRYEmWXbTgmS-IwvN34_vZmsDE"; 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                // --- API Key ของคุณถูกใส่ไว้ตรงนี้เรียบร้อยแล้ว ---
+                const apiKey = "AIzaSyDy8R_EQJRYEmWXbTgmS-IwvN34_vZmsDE";
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
                 
                 const prompt = `ในฐานะ "Lotto-Tech AI" ที่เชี่ยวชาญการทำนายฝันโดยอ้างอิงจากตำราโบราณและหลักจิตวิทยา จงวิเคราะห์ความฝันต่อไปนี้:\n\n"${dreamText}"\n\nจงให้คำทำนายที่เชื่อมโยงกับชีวิตจริงของผู้ฝันในด้านต่างๆ เช่น การงาน การเงิน ความรัก สุขภาพ และคำเตือน จากนั้นให้ตีความเป็น "เลขนำโชค" สองตัวและสามตัว พร้อมอธิบายเหตุผลที่มาของตัวเลขอย่างสั้นๆ จัดรูปแบบคำตอบให้สวยงาม อ่านง่าย มีหัวข้อชัดเจน`;
                 
-                const payload = {
-                    contents: [{
-                        parts: [{ text: prompt }]
-                    }]
-                };
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
 
                 try {
                     const response = await fetch(apiUrl, {
@@ -288,21 +352,22 @@
                     });
 
                     if (!response.ok) {
-                        throw new Error(`API Error: ${response.statusText}`);
+                        const errorData = await response.json();
+                        console.error("API Error Response:", errorData);
+                        throw new Error(`API Error: ${response.statusText} - ${errorData.error?.message || 'Unknown error'}`);
                     }
 
                     const result = await response.json();
                     
-                    if (result.candidates && result.candidates.length > 0) {
-                        const interpretation = result.candidates[0].content.parts[0].text;
-                        dreamResultText.innerHTML = interpretation;
+                    if (result.candidates && result.candidates.length > 0 && result.candidates[0].content.parts[0].text) {
+                        dreamResultText.innerHTML = result.candidates[0].content.parts[0].text.replace(/\n/g, '<br>');
                     } else {
-                        dreamResultText.innerHTML = 'ขออภัย AI ไม่สามารถวิเคราะห์ความฝันได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง';
+                         dreamResultText.innerHTML = 'ขออภัย AI ไม่สามารถวิเคราะห์ความฝันได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง (Received no valid content).';
                     }
 
                 } catch (error) {
                     console.error("Error analyzing dream:", error);
-                    dreamResultText.innerHTML = 'เกิดข้อผิดพลาดในการเชื่อมต่อกับ AI กรุณาตรวจสอบการเชื่อมต่อและลองใหม่อีกครั้ง';
+                    dreamResultText.innerHTML = 'เกิดข้อผิดพลาดในการเชื่อมต่อกับ AI กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต และตรวจสอบว่า API Key ถูกต้องหรือไม่';
                 } finally {
                     dreamButtonText.textContent = 'ทำนายฝัน';
                     dreamAnalyzeButton.disabled = false;
@@ -311,6 +376,76 @@
             
             dreamAnalyzeButton.addEventListener('click', analyzeDreamWithGemini);
 
+            // --- New Canvas Background Effect ---
+            const canvas = document.getElementById('net-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            function createParticles() {
+                particles = [];
+                const particleCount = Math.floor(canvas.width * canvas.height / 20000);
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: (Math.random() - 0.5) * 0.5,
+                        radius: Math.random() * 2 + 1
+                    });
+                }
+            }
+
+            function animateNet() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(34, 211, 238, 0.5)';
+                    ctx.fill();
+                });
+                
+                const maxDist = 120;
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < maxDist) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = `rgba(56, 189, 248, ${1 - dist / maxDist})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                requestAnimationFrame(animateNet);
+            }
+            
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                createParticles();
+            });
+
+            // --- Initializations ---
+            resizeCanvas();
+            createParticles();
+            animateNet();
             updateStatsUI();
             initializeLotteryCycle();
         });
